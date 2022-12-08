@@ -1,0 +1,41 @@
+set fp [open "output.txt" w+]
+set fp_1 [open "output.txt2" w+]
+set f [molinfo top get numframes]
+set memb [atomselect top "segname MEMB"]
+set reslist [lsort -unique -real [$memb get resid]]
+set len [tcl::mathfunc::max {*}$reslist]
+
+
+set pre_0 {}
+animate goto 0
+for {set k 1} { $k <= $len} {incr k} {
+set sel [atomselect top "segname MEMB and resid $k and name P P1"]
+set x [lindex [measure center $sel] 0]
+set y [lindex [measure center $sel] 1]
+set a [list $x $y]
+lappend pre_0 $a
+}
+
+
+for {set i 0} {$i < $f} {incr i} {
+animate goto $i
+set pre {}
+	for {set k 1} {$k <= $len} {incr k} {
+	set sel [atomselect top "segname MEMB and resid $k and name P P1"]
+	set x_1 [lindex [measure center $sel] 0]
+        set y_1 [lindex [measure center $sel] 1]
+        set a [list $x_1 $y_1]
+        set b [lindex $pre_0 $k]
+        set D [expr [veclength $a $b]**2/($i*0.1)*10**-16*1/4 ]
+        lappend pre $D
+	}
+set avg [expr [vecsum $D] / [llength $pre]]
+puts $fp "$avg"
+puts $fp_1 "$avg"
+}
+
+close $fp
+close $fp_1
+
+
+
